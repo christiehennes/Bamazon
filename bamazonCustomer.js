@@ -28,20 +28,24 @@ let connection = mysql.createConnection({
     console.log("Here are the products");
 
     connection.query("SELECT * FROM products", function(err, results) {
+
         if (err) throw err;
+
         for (var i = 0; i < results.length; i++) {
             console.log('Item Number: ' + results[i].item_id);
             console.log('Product Name: ' + results[i].product_name);
             console.log('Price: $' + results[i].price)
             console.log('\n-----------\n');
           }
+
+          promptPurchase(results);
     })
 
-    promptPurchase();
+
 
   }
 
-  function promptPurchase(){
+  function promptPurchase(productArray){
 
     connection.query("SELECT * FROM products", function(err, results) {
         if (err) throw err;
@@ -63,7 +67,54 @@ let connection = mysql.createConnection({
         console.log("Sounds good");
         console.log(answer.product);
         console.log(answer.quantity);
+
+        //Make sure the product exists 
+        let exists = false;
+        let index = 0;
+        for (let i = 0; i < productArray.length; i++){
+            if (parseInt(answer.product) === productArray[i].item_id){
+                exists = true;
+                index = i;
+            }
+        }
+
+        if (!exists) {
+            console.log("Oops! Item does not exist");
+            // displayProducts();
+            return;
+        }
+
+        //If it does, then see if the quantity is available 
+        if (productArray[index].stock_quantity < answer.quantity){
+            console.log("Insufficient quantity!");
+            return;
+        }
+        else{
+
+            let newQuant = productArray[index].stock_quantity - answer.quantity;
+            
+            connection.query(
+                "UPDATE products SET ? WHERE ?",
+                [
+                  {
+                    stock_quantity: newQuant
+                  },
+                  {
+                    item_id: parseInt(answer.product)
+                  }
+                ],
+                function(error) {
+                  if (error) throw err;
+                  console.log("Transaction Successful");
+                  console.log("You were charged " + answer.quantity*productArray[index].price);
+                  console.log("\n\n");
+                }
+              );
+        }
+
+
       })
     })
     
   }
+
