@@ -37,33 +37,33 @@ let connection = mysql.createConnection({
           }
     })
 
+    promptPurchase();
 
+  }
 
-    // connection.query("SELECT * FROM products", function(err, results) {
-    //     if (err) throw err;
+  function promptPurchase(){
 
-    //     inquirer
-    //   .prompt([
-    //     {
-    //       name: "choice",
-    //       type: "rawlist",
-    //       choices: function() {
-    //         var choiceArray = [];
-    //         for (var i = 0; i < results.length; i++) {
-    //           choiceArray.push(results[i].product_name);
-    //         }
-    //         return choiceArray;
-    //       },
-    //       message: "What auction would you like to place a bid in?"
-    //     },
-    //     {
-    //       name: "bid",
-    //       type: "input",
-    //       message: "How much would you like to bid?"
-    //     }
-    //   ])
-    //   .then(function(answer) { 
-    //     console.log("Sounds good");
-    //   })
-    // })
+    connection.query("SELECT * FROM products", function(err, results) {
+        if (err) throw err;
+
+        inquirer
+      .prompt([
+        {
+          name: "product",
+          type: "input",
+          message: "Which item would you like to purchase? (enter item number)"
+        },
+        {
+          name: "quantity",
+          type: "input",
+          message: "How many units would you like to buy?"
+        }
+      ])
+      .then(function(answer) { 
+        console.log("Sounds good");
+        console.log(answer.product);
+        console.log(answer.quantity);
+      })
+    })
+    
   }
