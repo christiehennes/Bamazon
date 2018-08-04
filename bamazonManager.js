@@ -236,11 +236,15 @@ function addProduct(){
         //Add the product
         connection.query(
 
-            `INSERT INTO products (product_name, department_name, price, stock_quantity) 
-            VALUES (${answer.product},${answer.deptartment}, ${parseInt(answer.price)}, ${answer.quant})`,
-            
+            "INSERT INTO products SET ?",
+            {
+                product_name: answer.product,
+                department_name: answer.department,
+                price: parseInt(answer.price),
+                stock_quantity: parseInt(answer.quant)
+            },
             function(error) {
-            if (error) throw err;
+            if (error) throw error;
 
             console.log("\n=========================\n");
             console.log("Product Added".green);
