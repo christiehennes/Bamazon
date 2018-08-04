@@ -1,5 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+var colors = require('colors');
 
 let connection = mysql.createConnection({
     host: "localhost",
@@ -13,20 +14,23 @@ let connection = mysql.createConnection({
     // Your password
     password: "root",
     database: "bamazon"
-  });
+});
   
   // connect to the mysql server and sql database
-  connection.connect(function(err) {
+connection.connect(function(err) {
     if (err) throw err;
     // run the start function after the connection is made to prompt the user
     displayProducts();
-  });
+});
 
 
 
-  function displayProducts(){
-    console.log("Here are the products");
+function displayProducts(){
+    console.log("\n=========================\n");
+    console.log("PRODUCTS".green)
+    console.log("\n=========================\n");
 
+    //SQL DB connection & display products to console
     connection.query("SELECT * FROM products", function(err, results) {
 
         if (err) throw err;
@@ -36,85 +40,114 @@ let connection = mysql.createConnection({
             console.log('Product Name: ' + results[i].product_name);
             console.log('Price: $' + results[i].price)
             console.log('\n-----------\n');
-          }
+            }
 
-          promptPurchase(results);
-    })
+            promptPurchase(results); //Gather info about what the user wants to do next
+    });
+}
 
 
-
-  }
-
-  function promptPurchase(productArray){
+function promptPurchase(productArray){
 
     connection.query("SELECT * FROM products", function(err, results) {
         if (err) throw err;
 
         inquirer
-      .prompt([
+        .prompt([
         {
-          name: "product",
-          type: "input",
-          message: "Which item would you like to purchase? (enter item number)"
+            name: "product",
+            type: "input",
+            message: "Which item would you like to purchase? (enter item number)"
         },
         {
-          name: "quantity",
-          type: "input",
-          message: "How many units would you like to buy?"
+            name: "quantity",
+            type: "input",
+            message: "How many units would you like to buy?"
         }
-      ])
-      .then(function(answer) { 
-        console.log("Sounds good");
-        console.log(answer.product);
-        console.log(answer.quantity);
+        ])
+        .then(function(answer) { 
 
-        //Make sure the product exists 
-        let exists = false;
-        let index = 0;
-        for (let i = 0; i < productArray.length; i++){
-            if (parseInt(answer.product) === productArray[i].item_id){
-                exists = true;
-                index = i;
+            //Make sure the product exists 
+            let exists = false;
+            let index = 0;
+            for (let i = 0; i < productArray.length; i++){
+                if (parseInt(answer.product) === productArray[i].item_id){
+                    exists = true;
+                    index = i;
+                }
             }
-        }
 
-        if (!exists) {
-            console.log("Oops! Item does not exist");
-            // displayProducts();
-            return;
-        }
+            //Display if item does not exist
+            if (!exists) {
+                console.log('\nOops! Item does not exist\n'.red);
+                restartOrder();
+                return;
+            }
 
-        //If it does, then see if the quantity is available 
-        if (productArray[index].stock_quantity < answer.quantity){
-            console.log("Insufficient quantity!");
-            return;
+            //If it exists, see if the quantity is available 
+            if (productArray[index].stock_quantity < answer.quantity){
+                console.log("\nInsufficient quantity!\n".red);
+                restartOrder();
+                return;
+            }
+            else{
+
+                let newQuant = productArray[index].stock_quantity - answer.quantity;
+                
+                //Uupdate the quantity 
+                connection.query(
+                    "UPDATE products SET ? WHERE ?",
+                    [
+                    {
+                        stock_quantity: newQuant
+                    },
+                    {
+                        item_id: parseInt(answer.product)
+                    }
+                    ],
+                    function(error) {
+                    if (error) throw err;
+
+                    console.log("\n=========================\n");
+                    console.log("Transaction Successful".green);
+                    console.log("You were charged $" + answer.quantity*productArray[index].price);
+                    console.log("\n=========================\n\n");
+
+                    restartOrder();
+                    
+                    }
+                );
+            }
+
+        });
+    });
+
+}
+
+//Function to ask if you want to restart the order
+function restartOrder() {
+
+    inquirer.prompt([
+        {
+            name: "restart",
+            type: "input",
+            message: "Do you want to purchase another product? (Y/N)"
+        }
+    ])
+    .then(function(answer) 
+    { 
+        if (answer.restart === 'Y' || answer.restart === 'y'){
+            console.log(answer.restart);
+            displayProducts(); //Restart the application by displaying products
         }
         else{
-
-            let newQuant = productArray[index].stock_quantity - answer.quantity;
-            
-            connection.query(
-                "UPDATE products SET ? WHERE ?",
-                [
-                  {
-                    stock_quantity: newQuant
-                  },
-                  {
-                    item_id: parseInt(answer.product)
-                  }
-                ],
-                function(error) {
-                  if (error) throw err;
-                  console.log("Transaction Successful");
-                  console.log("You were charged " + answer.quantity*productArray[index].price);
-                  console.log("\n\n");
-                }
-              );
+            console.log("\n=========================\n");
+            console.log("Thanks for shopping!");
+            console.log("\n=========================\n");
+            return process.exit(22);
         }
 
+    });
 
-      })
-    })
-    
-  }
+}
 
