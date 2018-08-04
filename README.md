@@ -34,7 +34,7 @@
 ### View Products
 ![View Products](https://media.giphy.com/media/1xnyp1fWnAR2TxMIH6/giphy.gif)
 
-###View Low Inventory 
+### View Low Inventory 
 ![Low Inventory](https://media.giphy.com/media/cdSmdtHTtCsxcLG6Tu/giphy.gif)
 
 ### Add Inventory 
