@@ -1,4 +1,3 @@
-
 #Bamazon CLI Customer / Manager Application
 
 ##Instructions 
