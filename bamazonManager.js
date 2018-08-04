@@ -101,6 +101,7 @@ function lowInventory(){
         let lowInv = false;
 
         for (var i = 0; i < results.length; i++) {
+            // console.log(results[i].stock_quantity);
             if(results[i].stock_quantity < 5){
 
                 lowInv = true;
@@ -115,7 +116,7 @@ function lowInventory(){
 
         if (!lowInv){
 
-            console.log("No low inventory".green);
+            console.log("No low inventory\n\n".green);
         }
 
         managerOptions();
